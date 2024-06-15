@@ -1,0 +1,11 @@
+[package]
+name = "pi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rayon = "1.10.0"
+rug = "1.24.1"
+
+[profile.release]
+debug = true
