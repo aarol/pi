@@ -22,6 +22,12 @@ fn main() {
         })
         .unwrap_or(60);
 
+    let pi = chudnovsky(digits);
+
+    println!("{pi}");
+}
+
+fn chudnovsky(digits: u32) -> String {
     let terms = (digits as f64 / DIGITS_PER_ITER) as usize;
 
     let mut depth = 0;
@@ -51,11 +57,6 @@ fn main() {
     */
     let p1 = &mut splitter.p_stack[0];
     let q1 = &mut splitter.q_stack[0];
-    let g1 = &mut splitter.g_stack[0];
-
-    //eprintln!("q={q1}");
-    //eprintln!("p={p1}");
-    //eprintln!("g={g1}");
 
     q1.add_assign(p1.clone().mul(A));
     p1.mul_assign(C / D);
@@ -72,7 +73,7 @@ fn main() {
 
     qi *= pi;
 
-    println!("{}", qi.to_string())
+    qi.to_string()[0..(digits as usize + 2)].to_owned()
 }
 
 struct CoreSplitter {
@@ -144,6 +145,34 @@ impl CoreSplitter {
             if g_flag == 1 {
                 self.g_stack[top] = (&self.g_stack[top] * &self.g_stack[top + 1]).complete();
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::chudnovsky;
+
+    #[test]
+    fn run() {
+        for (digits, expected_last_10) in [
+            (100, "3421170679"),
+            (10_000, "5256375678"),
+            (500_000, "5138195242"),
+            (1_000_000, "5779458151")
+        ] {
+            let pi = chudnovsky(digits);
+            let actual_last_10 = pi
+                .char_indices()
+                .rev()
+                .nth(9)
+                .map(|(i, _)| &pi[i..])
+                .expect("should have more than 10 characters");
+
+            assert_eq!(
+                actual_last_10, expected_last_10,
+                "testing {digits} digits of Pi"
+            );
         }
     }
 }
