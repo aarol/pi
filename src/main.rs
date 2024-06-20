@@ -155,6 +155,7 @@ mod tests {
 
     #[test]
     fn run() {
+        // http://www.numberworld.org/digits/Pi/
         for (digits, expected_last_10) in [
             (100, "3421170679"),
             (10_000, "5256375678"),
