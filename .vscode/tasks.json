@@ -9,6 +9,8 @@
         "-g",
         "${file}",
         "-lgmp",
+        "-lm",
+        "-DNO_FACTOR",
         "-o",
         "${fileDirname}/${fileBasenameNoExtension}"
       ],
