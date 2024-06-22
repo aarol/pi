@@ -1,5 +1,3 @@
-use std::ops::{AddAssign, Mul, MulAssign};
-
 use rug::{
     ops::{CompleteRound, NegAssign, PowAssign},
     Assign, Complete, Float, Integer,
@@ -29,52 +27,45 @@ fn main() {
 }
 
 fn chudnovsky(digits: u32) -> String {
-    let terms = (digits as f64 / DIGITS_PER_ITER) as usize;
+    let iters_needed = (digits as f64 / DIGITS_PER_ITER) as usize;
 
     let mut depth = 0;
-    while 1 << depth < terms {
+    while 1 << depth < iters_needed {
         depth += 1;
     }
     depth += 1;
 
-    let cores = 1;
-    let mut cores_depth = 0;
-    while 1 << cores_depth < cores {
-        cores_depth += 1;
-    }
-
-    //eprintln!("#terms={terms}, depth={depth}, cores={cores}");
-
     let mut splitter = CoreSplitter::new(depth);
 
-    splitter.bs(0, terms as u32, 1, cores_depth as usize, 0, 0);
+    splitter.bs(0, iters_needed as u32, 0, 0);
 
-    let default_prec = (digits as f64 * BITS_PER_DIGIT + 16.) as u32;
+    let target_prec = (digits as f64 * BITS_PER_DIGIT + 16.) as u32;
 
     /*
                 p*(C/D)*sqrt(C)
       pi = -----------------
                 (q+A*p)
     */
-    let p1 = &mut splitter.p_stack[0];
-    let q1 = &mut splitter.q_stack[0];
+    let p = &mut splitter.p_stack[0];
+    let q = &mut splitter.q_stack[0];
 
-    q1.add_assign(p1.clone().mul(A));
-    p1.mul_assign(C / D);
+    *q += p.clone() * A;
+    *p *= C / D;
 
-    let mut pi = Float::new(default_prec);
-    pi.assign(&*p1);
+    let mut p_float = Float::new(target_prec);
+    p_float.assign(&*p);
 
-    let mut qi = Float::new(default_prec);
-    qi.assign(&*q1);
+    let mut q_float = Float::new(target_prec);
 
-    qi = pi / qi;
+    q_float.assign(&*q);
 
-    pi = Float::sqrt_u(C).complete(default_prec);
+    q_float = p_float / q_float;
 
-    qi *= pi;
+    p_float = Float::sqrt_u(C).complete(target_prec);
 
-    qi.to_string()[0..(digits as usize + 2)].to_owned()
+    q_float *= p_float;
+
+    q_float.to_string()[0..(digits as usize + 2)].to_owned()
 }
 
 struct CoreSplitter {
@@ -92,7 +83,7 @@ impl CoreSplitter {
         }
     }
 
-    fn bs(&mut self, a: u32, b: u32, g_flag: usize, level: usize, index: usize, top: usize) {
+    fn bs(&mut self, a: u32, b: u32, level: usize, top: usize) {
         //eprintln!(
         // "bs: a = {a}, b = {b}, gflag = {g_flag} index = {index} level = {level} top = {top}"
         // );
@@ -108,7 +99,6 @@ impl CoreSplitter {
             let g1 = &mut self.g_stack[top];
 
             p1.assign(b);
-
             p1.pow_assign(3);
             *p1 *= (C / 24) * (C / 24);
             *p1 *= C * 24;
@@ -132,20 +122,16 @@ impl CoreSplitter {
             q(a,b) = q(a,m) * p(m,b) + q(m,b) * g(a,m)
             */
             let mid = (a as f32 + (b as f32 - a as f32) * 0.5224) as u32; // tuning parameter
-            self.bs(a, mid, 1, level + 1, index, top);
+            self.bs(a, mid, level + 1, top);
 
-            self.bs(mid, b, g_flag, level + 1, index, top + 1);
+            self.bs(mid, b, level + 1, top + 1);
 
             self.p_stack[top] = (&self.p_stack[top] * &self.p_stack[top + 1]).complete();
             self.q_stack[top] = (&self.q_stack[top] * &self.p_stack[top + 1]).complete();
             self.q_stack[top + 1] = (&self.q_stack[top + 1] * &self.g_stack[top]).complete();
-            //eprintln!("q_bs_top={}", self.q_stack[top]);
             self.q_stack[top] = (&self.q_stack[top] + &self.q_stack[top + 1]).into();
-            //eprintln!("q_bs_bot={}", self.q_stack[top]);
 
-            if g_flag == 1 {
-                self.g_stack[top] = (&self.g_stack[top] * &self.g_stack[top + 1]).complete();
-            }
+            self.g_stack[top] = (&self.g_stack[top] * &self.g_stack[top + 1]).complete();
         }
     }
 }
@@ -173,7 +159,7 @@ mod tests {
 
             assert_eq!(
                 actual_last_10, expected_last_10,
-                "testing {digits} digits of Pi"
+                "testing {digits} digits of pi"
             );
         }
     }
