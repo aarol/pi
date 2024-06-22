@@ -17,7 +17,8 @@ fn main() {
     let digits: u32 = std::env::args()
         .nth(1)
         .map(|arg| {
-            arg.parse()
+            arg.replace("_", "")
+                .parse()
                 .expect("first argument should be a valid number")
         })
         .unwrap_or(60);
@@ -154,13 +155,13 @@ mod tests {
     use crate::chudnovsky;
 
     #[test]
-    fn run() {
+    fn verify_last_10_digits() {
         // http://www.numberworld.org/digits/Pi/
         for (digits, expected_last_10) in [
             (100, "3421170679"),
             (10_000, "5256375678"),
             (500_000, "5138195242"),
-            (1_000_000, "5779458151")
+            (1_000_000, "5779458151"),
         ] {
             let pi = chudnovsky(digits);
             let actual_last_10 = pi
