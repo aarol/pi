@@ -12,21 +12,21 @@ const DIGITS_PER_ITER: f64 = 14.1816474627254776555;
 const BITS_PER_DIGIT: f64 = 3.32192809488736234787;
 
 fn main() {
-    let digits: u32 = std::env::args()
+    let digits: usize = std::env::args()
         .nth(1)
         .map(|arg| {
             arg.replace("_", "")
                 .parse()
                 .expect("first argument should be a valid number")
         })
-        .unwrap_or(60);
+        .unwrap_or(60); // calculate 60 digits by default
 
     let pi = chudnovsky(digits);
 
     println!("{pi}");
 }
 
-fn chudnovsky(digits: u32) -> String {
+fn chudnovsky(digits: usize) -> String {
     let iters_needed = (digits as f64 / DIGITS_PER_ITER) as usize;
 
     let mut depth = 0;
