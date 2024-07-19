@@ -20,7 +20,7 @@
           "kind": "bin"
         }
       },
-      "args": ["20000"],
+      "args": ["1000000000", "12"],
       "cwd": "${workspaceFolder}"
     },
     {
@@ -47,7 +47,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${fileDirname}/${fileBasenameNoExtension}",
-      "args": ["100", "2", "1"],
+      "args": ["100", "1", "12"],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",
       "environment": [],

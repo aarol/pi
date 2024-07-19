@@ -443,12 +443,16 @@ double progress = 0, percent;
 
 // binary splitting
 void sum(unsigned long i, unsigned long j, unsigned long gflag) {
-  printf("stack[%ld][0] and stack[%ld][0]\n", i, j);
+  // pi *= pj
   mpz_mul(pstack[i][0], pstack[i][0], pstack[j][0]);
+  // qi *= pj
   mpz_mul(qstack[i][0], qstack[i][0], pstack[j][0]);
+  // qj *= gi
   mpz_mul(qstack[j][0], qstack[j][0], gstack[i][0]);
+  // qi += qj
   mpz_add(qstack[i][0], qstack[i][0], qstack[j][0]);
   if (gflag) {
+    // gi *= gj
     mpz_mul(gstack[i][0], gstack[i][0], gstack[j][0]);
   }
 }
@@ -532,7 +536,6 @@ void bs(unsigned long a, unsigned long b, unsigned long gflag,
     }
 #endif /* NO_FACTOR */
 
-
     if (ccc) CHECK_MEMUSAGE;
     mpz_mul(pstack[index][top], pstack[index][top], pstack[index][top + 1]);
 
@@ -546,8 +549,6 @@ void bs(unsigned long a, unsigned long b, unsigned long gflag,
     if (ccc) CHECK_MEMUSAGE;
     mpz_add(qstack[index][top], qstack[index][top], qstack[index][top + 1]);
     // print_mpz(qstack[index][top], "q_bs_bot");
-
-
 
 #ifndef NO_FACTOR
     if (ccc) CHECK_MEMUSAGE;
@@ -570,7 +571,6 @@ void bs(unsigned long a, unsigned long b, unsigned long gflag,
     fac_show(fgstack[index][top]);
   }
 #endif /* NO_FACTOR */
-
 }
 
 int main(int argc, char *argv[]) {
@@ -743,108 +743,110 @@ int main(int argc, char *argv[]) {
         }
       }
     }
-  }
-  print_mpz(gstack[0][0], "g");
+    // print_mpz(gstack[0][0], "g");
 
-  mpz_clear(gstack[0][0]);
-  free(gstack[0]);
-  free(gstack);
+    mpz_clear(gstack[0][0]);
+    free(gstack[0]);
+    free(gstack);
 
-  mid1 = clock();
-  wmid1 = wall_clock();
-  fprintf(stderr, "\nbs      cputime = %6.3f  wallclock = %6.3f\n",
-          (double)(mid1 - mid0) / CLOCKS_PER_SEC, (wmid1 - wmid0));
+    mid1 = clock();
+    wmid1 = wall_clock();
+    fprintf(stderr, "\nbs      cputime = %6.3f  wallclock = %6.3f\n",
+            (double)(mid1 - mid0) / CLOCKS_PER_SEC, (wmid1 - wmid0));
 
 #ifndef NO_FACTOR
-  fprintf(stderr, "gcd     cputime = %6.3f\n",
-          (double)(gcd_time) / CLOCKS_PER_SEC);
+    fprintf(stderr, "gcd     cputime = %6.3f\n",
+            (double)(gcd_time) / CLOCKS_PER_SEC);
 
-  // fprintf(stderr,"misc    "); fflush(stderr);
+    // fprintf(stderr,"misc    "); fflush(stderr);
 
-  /* free some resources */
-  free(sieve);
+    /* free some resources */
+    free(sieve);
 #endif /* NO_FACTOR */
 
-  /* prepare to convert integers to floats */
-  mpf_set_default_prec((long int)(d * BITS_PER_DIGIT + 16));
+    /* prepare to convert integers to floats */
+    mpf_set_default_prec((long int)(d * BITS_PER_DIGIT + 16));
 
-  /*
-                  p*(C/D)*sqrt(C)
-    pi = -----------------
-                  (q+A*p)
-  */
+    /*
+                    p*(C/D)*sqrt(C)
+      pi = -----------------
+                    (q+A*p)
+    */
 
-  psize = mpz_sizeinbase(pstack[0][0], 10);
-  qsize = mpz_sizeinbase(qstack[0][0], 10);
+    psize = mpz_sizeinbase(pstack[0][0], 10);
+    qsize = mpz_sizeinbase(qstack[0][0], 10);
 
-  print_mpz(qstack[0][0], "q");
-  print_mpz(pstack[0][0], "p");
+    // print_mpz(qstack[0][0], "q");
+    // print_mpz(pstack[0][0], "p");
 
-  mpz_addmul_ui(qstack[0][0], pstack[0][0], A);
-  mpz_mul_ui(pstack[0][0], pstack[0][0], C / D);
+    mpz_addmul_ui(qstack[0][0], pstack[0][0], A);
+    mpz_mul_ui(pstack[0][0], pstack[0][0], C / D);
 
-  mpf_init(pi);
-  mpf_set_z(pi, pstack[0][0]);
-  mpz_clear(pstack[0][0]);
+    mpf_init(pi);
+    mpf_set_z(pi, pstack[0][0]);
+    mpz_clear(pstack[0][0]);
 
-  mpf_init(qi);
-  mpf_set_z(qi, qstack[0][0]);
-  mpz_clear(qstack[0][0]);
+    mpf_init(qi);
+    mpf_set_z(qi, qstack[0][0]);
+    mpz_clear(qstack[0][0]);
 
-  free(pstack[0]);
-  free(qstack[0]);
-  free(pstack);
-  free(qstack);
+    free(pstack[0]);
+    free(qstack[0]);
+    free(pstack);
+    free(qstack);
 
-  mid2 = clock();
-  // fprintf(stderr,"cputime = %6.3f\n", (double)(mid2-mid1)/CLOCKS_PER_SEC);
+    mid2 = clock();
+    // fprintf(stderr,"cputime = %6.3f\n", (double)(mid2-mid1)/CLOCKS_PER_SEC);
 
-  /* initialize temp float variables for sqrt & div */
-  mpf_init(t1);
-  mpf_init(t2);
-  // mpf_set_prec_raw(t1, mpf_get_prec(pi));
+    /* initialize temp float variables for sqrt & div */
+    mpf_init(t1);
+    mpf_init(t2);
+    // mpf_set_prec_raw(t1, mpf_get_prec(pi));
 
-  /* final step */
-  fprintf(stderr, "div     ");
-  fflush(stderr);
-  my_div(qi, pi, qi);
-  mid3 = clock();
-  fprintf(stderr, "cputime = %6.3f\n", (double)(mid3 - mid2) / CLOCKS_PER_SEC);
+    /* final step */
+    fprintf(stderr, "div     ");
+    fflush(stderr);
+    my_div(qi, pi, qi);
+    mid3 = clock();
+    fprintf(stderr, "cputime = %6.3f\n",
+            (double)(mid3 - mid2) / CLOCKS_PER_SEC);
 
-  fprintf(stderr, "sqrt    ");
-  fflush(stderr);
-  my_sqrt_ui(pi, C);
-  mid4 = clock();
-  fprintf(stderr, "cputime = %6.3f\n", (double)(mid4 - mid3) / CLOCKS_PER_SEC);
+    fprintf(stderr, "sqrt    ");
+    fflush(stderr);
+    my_sqrt_ui(pi, C);
+    mid4 = clock();
+    fprintf(stderr, "cputime = %6.3f\n",
+            (double)(mid4 - mid3) / CLOCKS_PER_SEC);
 
-  fprintf(stderr, "mul     ");
-  fflush(stderr);
-  mpf_mul(qi, qi, pi);
-  end = clock();
-  wend = wall_clock();
-  fprintf(stderr, "cputime = %6.3f\n", (double)(end - mid4) / CLOCKS_PER_SEC);
+    fprintf(stderr, "mul     ");
+    fflush(stderr);
+    mpf_mul(qi, qi, pi);
+    end = clock();
+    wend = wall_clock();
+    fprintf(stderr, "cputime = %6.3f\n", (double)(end - mid4) / CLOCKS_PER_SEC);
 
-  fprintf(stderr, "total   cputime = %6.3f  wallclock = %6.3f\n",
-          (double)(end - begin) / CLOCKS_PER_SEC, (wend - wbegin));
-  fflush(stderr);
+    fprintf(stderr, "total   cputime = %6.3f  wallclock = %6.3f\n",
+            (double)(end - begin) / CLOCKS_PER_SEC, (wend - wbegin));
+    fflush(stderr);
 
-  fprintf(stderr,
-          "   P size=%ld digits (%f)\n"
-          "   Q size=%ld digits (%f)\n",
-          psize, (double)psize / d, qsize, (double)qsize / d);
+    fprintf(stderr,
+            "   P size=%ld digits (%f)\n"
+            "   Q size=%ld digits (%f)\n",
+            psize, (double)psize / d, qsize, (double)qsize / d);
 
-  /* output Pi and timing statistics */
-  if (out & 1) {
-    fprintf(stdout, "pi(0,%ld)=\n", terms);
-    mpf_out_str(stdout, 10, d + 2, qi);
-    fprintf(stdout, "\n");
+    /* output Pi and timing statistics */
+    if (out & 1) {
+      fprintf(stdout, "pi(0,%ld)=\n", terms);
+      mpf_out_str(stdout, 10, d + 2, qi);
+      fprintf(stdout, "\n");
+    }
+
+    /* free float resources */
+    mpf_clear(pi);
+    mpf_clear(qi);
+
+    mpf_clear(t1);
+    mpf_clear(t2);
+    exit(0);
   }
-
-  /* free float resources */
-  mpf_clear(pi);
-  mpf_clear(qi);
-
-  mpf_clear(t1);
-  mpf_clear(t2);
-  exit(0);
 }

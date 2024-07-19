@@ -4,9 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.5.7", features = ["derive"] }
 indicatif = "0.17.8"
 rayon = "1.10.0"
 rug = "1.24.1"
+tracing = "0.1.40"
+tracing-chrome = "0.7.2"
+tracing-subscriber = "0.3.18"
+
 
 [profile.release]
-debug = true
+# debug = true
+opt-level = 3
+overflow-checks = false
+codegen-units = 1
