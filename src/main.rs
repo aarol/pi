@@ -10,14 +10,12 @@ mod bf;
 const DIGITS_PER_ITER: f64 = 14.1816474627254776555;
 const BITS_PER_DIGIT: f64 = 3.32192809488736234787;
 fn main() {
-
     let mut bf = BigFloat::new();
     bf.set_ui(1000);
 
     println!("{}", bf);
 
     return;
-
 
     let digits: usize = std::env::args()
         .nth(1)
@@ -43,5 +41,18 @@ fn chudnovsky(digits: usize) -> String {
     let n = (digits as f64 / 47.11041313821584202247).ceil() as u64 + 10;
     let prec1 = digits + 32;
 
+    let mut p = BigFloat::new();
+    let mut g = BigFloat::new();
+
     "".into()
+}
+
+fn chud_bs(p: &BigFloat, q: &BigFloat, g: &BigFloat, a: i64, b: i64, need_g: bool, prec: usize) {
+
+    if a == (b - 1) {
+        let mut t0 = BigFloat::new();
+        let mut t1 = BigFloat::new();
+
+        g = 2 * b - 1;
+    }
 }
